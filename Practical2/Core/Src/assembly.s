@@ -41,9 +41,9 @@ main_loop:
 @ Checks if buttons are pressed, if not then default mode
 @ Need to refer to this later when doing the button modes
 
-LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states
+LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states this makes R4 equal the value stored at R5 +0x10
 @ NOTE the push buttons are active low
-MOVS R6, #0x0F @ load mask for SW0-3 (0b1111) into a register (Thumb-1 needs a reg mask)
+MOVS R6, #0x0F @ load mask for SW0-3 (0b1111) into a register
 ANDS R4, R4, R6  @ just considers values of inputs for SW0-3
 
 @ First want to check if button 2 or 3 pressed bcos they only pressed one at a time and dont want it mixed up with the later 0&1 pressing stuff
