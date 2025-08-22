@@ -45,9 +45,9 @@ LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states
 @ NOTE the push buttons are active low
 ANDS R4, R4, #0x0F @ just considers values of inputs for SW0-3
 
-@ First want to check if button 2 or 3 pressed bcos
+@ First want to check if button 2 or 3 pressed bcos they only pressed one at a time and dont want it mixed up with the later 0&1 pressing stuff
 
-TST  R4, #0b0100  @Button 2, the TST is an AND that wont change the R4 value, just changes flag
+TST  R4, #0b0100  @Button 2, the TST instruction is an AND that wont change the R4 value, just changes flag
 BEQ  mode2 @ If result of above is 0, the Z flag =1 and it will go to mode2
 
 TST R4, #0b1000 @ checks if button 3 pressed
@@ -65,27 +65,35 @@ BEQ  mode1
 B    mode_Default
 
 mode01:
-
+STR  R2, [R1, #0x14]
+ADD  R2, R2, #2
+BL   shortdelay
 @ keep this at end of this fucntion:
 B    main_loop
 
 mode0:
+STR  R2, [R1, #0x14]
+ADD  R2, R2, #2
+BL   longdelay
 
 @ keep this at end of this fucntion:
 B    main_loop
-mode1:
 
+mode1:
+STR  R2, [R1, #0x14]
+ADD  R2, R2, #1
+BL   shortdelay
 @ keep this at end of this fucntion:
 B    main_loop
 
 mode2:
 
 @ keep this at end of this function:
-B    main_loop
+B    main_loop @returns to main loop
 
 mode3:
 @ keep this at end of this function:
-B    main_loop
+B    main_loop @returns to main loop
 
 default_mode:
 STR  R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
@@ -103,6 +111,13 @@ SUB R3, R3, #1 @ R3 = R3-1
 BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
 BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
 
+shortdelay:
+LDR R3, SHORT_DELAY_CNT
+LDR R3, [R3]
+loop:
+SUB R3, R3, #1 @ R3 = R3-1
+BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
+BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
 
 write_leds:
 	STR R2, [R1, #0x14]
@@ -124,4 +139,4 @@ MODER_OUTPUT: 		.word 0x5555
 @ Therefore delay value: 5600000 divided by 3 = 1866666
 @ will have to double check this is correct when testing
 LONG_DELAY_CNT: 	.word 1866666
-SHORT_DELAY_CNT: 	.word 0
+SHORT_DELAY_CNT: 	.word 800000 @uses same logic as long delay but for 0.3s
