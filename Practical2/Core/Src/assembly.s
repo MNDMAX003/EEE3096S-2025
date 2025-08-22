@@ -34,6 +34,16 @@ ASM_Main:
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
 
+@ 0.7 seconds delay function
+
+longdelay:
+LDR R3, = LONG_DELAY_CNT @ set address of long delay to R3
+LDR R3, [R3] @ loads the value of the long delay at its address and sets it to R3
+loop:
+SUB R3, R3, #1 @ R3 = R3-1
+BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
+BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
+
 main_loop:
 
 
@@ -41,7 +51,7 @@ write_leds:
 	STR R2, [R1, #0x14]
 	B main_loop
 
-@ LITERALS; DO NOT EDIT
+@ LITERALS; DO NOT EDI
 	.align
 RCC_BASE: 			.word 0x40021000
 AHBENR_GPIOAB: 		.word 0b1100000000000000000
@@ -50,5 +60,11 @@ GPIOB_BASE:  		.word 0x48000400
 MODER_OUTPUT: 		.word 0x5555
 
 @ TODO: Add your own values for these delays
-LONG_DELAY_CNT: 	.word 0
+
+@ Choosing long delay: 8 Mhz clock (8 million cycles per sec) and want a 0.7s delay.
+@ 8 Mhz * 0.7 = 5600000 cycles
+@ Did some research and apparently an ARM loop takes about 3 cycles to execute
+@ Therefore delay value: 5600000 divided by 3 = 1866666
+@ will have to double check this is correct when testing
+LONG_DELAY_CNT: 	.word 1866666
 SHORT_DELAY_CNT: 	.word 0
