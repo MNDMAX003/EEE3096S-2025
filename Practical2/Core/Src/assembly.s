@@ -34,8 +34,14 @@ ASM_Main:
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
 
-@ 0.7 seconds delay function
 
+main_loop:
+
+@ Checks if buttons are pressed, if not then default mode
+@ Need to refer to this later when doing the button modes
+
+
+@ 0.7 seconds delay function
 longdelay:
 LDR R3, = LONG_DELAY_CNT @ set address of long delay to R3
 LDR R3, [R3] @ loads the value of the long delay at its address and sets it to R3
@@ -44,14 +50,12 @@ SUB R3, R3, #1 @ R3 = R3-1
 BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
 BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
 
-main_loop:
-
 
 write_leds:
 	STR R2, [R1, #0x14]
 	B main_loop
 
-@ LITERALS; DO NOT EDI
+@ LITERALS; DO NOT EDIT
 	.align
 RCC_BASE: 			.word 0x40021000
 AHBENR_GPIOAB: 		.word 0b1100000000000000000
