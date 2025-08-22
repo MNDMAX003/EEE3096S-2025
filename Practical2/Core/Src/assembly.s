@@ -34,12 +34,24 @@ ASM_Main:
 
 @ TODO: Add code, labels and logic for button checks and LED patterns
 
+LDR R5, GPIOA_BASE @ sets register 5 to the address of the start of the GPIOA base, this just makes it easier to get to
 
 main_loop:
 
 @ Checks if buttons are pressed, if not then default mode
 @ Need to refer to this later when doing the button modes
 
+LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states
+@ NOTE the push buttons are active low
+ANDS R4, R4, #0x0F @ just considers values of inputs for SW0-3
+CMP  R4, #0x0F     @ if all high = none pressed
+BEQ  default_mode @ if they are all high then branch to default mode
+
+default_mode:
+STR  R2, [R1, #0x14] @ display current count on LEDs
+ADD  R2, R2, #1        @ increments LED counter
+BL   longdelay @ branch to 0.7s delay
+B    main_loop @ takes back to main loop
 
 @ 0.7 seconds delay function
 longdelay:
