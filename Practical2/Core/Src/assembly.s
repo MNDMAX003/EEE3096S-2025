@@ -43,80 +43,86 @@ main_loop:
 
 LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states
 @ NOTE the push buttons are active low
-ANDS R4, R4, #0x0F @ just considers values of inputs for SW0-3
+MOVS R6, #0x0F @ load mask for SW0-3 (0b1111) into a register (Thumb-1 needs a reg mask)
+ANDS R4, R4, R6  @ just considers values of inputs for SW0-3
 
 @ First want to check if button 2 or 3 pressed bcos they only pressed one at a time and dont want it mixed up with the later 0&1 pressing stuff
 
-TST  R4, #0b0100  @Button 2, the TST instruction is an AND that wont change the R4 value, just changes flag
-BEQ  mode2 @ If result of above is 0, the Z flag =1 and it will go to mode2
+MOVS R6, #0x04 @ 0b0100 -> SW2 mask
+TST R4, R6 @ Button 2, the TST instruction is an AND that wont change the R4 value, just changes flag
+BEQ mode2 @ If result of above is 0, the Z flag =1 and it will go to mode2
 
-TST R4, #0b1000 @ checks if button 3 pressed
-BEQ  mode3 @same as above
+MOVS R6, #0x08 @ 0b1000 -> SW3 mask
+TST R4, R6 @ checks if button 3 pressed
+BEQ mode3 @ same as above
 
-TST  R4, #0b0011 @ both button 0 and 1
-BEQ  mode01
+MOVS R6, #0x03 @ 0b0011 -> SW0 & SW1 together
+TST R4, R6 @ both button 0 and 1
+BEQ mode01
 
-TST  R4, #0b0001 @button 0 pressed
-BEQ  mode0
+MOVS R6, #0x01 @ 0b0001 -> SW0
+TST R4, R6 @ button 0 pressed
+BEQ mode0
 
-TST  R4, #0b0010 @button 1 pressed
-BEQ  mode1
+MOVS R6, #0x02  @ 0b0010 -> SW1
+TST R4, R6 @ button 1 pressed
+BEQ mode1
 
-B    mode_Default
+B default_mode
 
 mode01:
 STR  R2, [R1, #0x14]
-ADD  R2, R2, #2
+ADDS  R2, R2, #2
 BL   shortdelay
 @ keep this at end of this fucntion:
 B    main_loop
 
 mode0:
 STR  R2, [R1, #0x14]
-ADD  R2, R2, #2
+ADDS  R2, R2, #2
 BL   longdelay
 
 @ keep this at end of this fucntion:
 B    main_loop
 
 mode1:
-STR  R2, [R1, #0x14]
-ADD  R2, R2, #1
-BL   shortdelay
+STR R2, [R1, #0x14]
+ADDS R2, R2, #1
+BL shortdelay
 @ keep this at end of this fucntion:
-B    main_loop
+B main_loop
 
 mode2:
 
 @ keep this at end of this function:
-B    main_loop @returns to main loop
+B main_loop @returns to main loop
 
 mode3:
 @ keep this at end of this function:
-B    main_loop @returns to main loop
+B main_loop @returns to main loop
 
 default_mode:
-STR  R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
-ADD  R2, R2, #1 @ increments LED counter
-BL   longdelay @ branch to 0.7s delay
-B    main_loop @ takes back to main loop
+STR R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
+ADDS R2, R2, #1 @ increments LED counter
+BL longdelay @ branch to 0.7s delay
+B main_loop @ takes back to main loop
 
 
 @ 0.7 seconds delay function
 longdelay:
 LDR R3, = LONG_DELAY_CNT @ set address of long delay to R3
 LDR R3, [R3] @ loads the value of the long delay at its address and sets it to R3
-loop:
-SUB R3, R3, #1 @ R3 = R3-1
-BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
+longloop:
+SUBS R3, R3, #1 @ R3 = R3-1
+BNE longloop @ if R3 =0 then will exit loop, Z flag =1 then
 BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
 
 shortdelay:
-LDR R3, SHORT_DELAY_CNT
+LDR R3, = SHORT_DELAY_CNT
 LDR R3, [R3]
-loop:
-SUB R3, R3, #1 @ R3 = R3-1
-BNE loop @ if R3 =0 then will exit loop, Z flag =1 then
+shortloop:
+SUBS R3, R3, #1 @ R3 = R3-1
+BNE shortloop @ if R3 =0 then will exit loop, Z flag =1 then
 BX LR @ going to call this fn later and this makes it jump back to where it was before in the main loop
 
 write_leds:
