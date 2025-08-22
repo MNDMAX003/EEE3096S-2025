@@ -44,14 +44,55 @@ main_loop:
 LDR R4, [R5, #0x10] @ the IDR is at 0x48000010, it holds the push button states
 @ NOTE the push buttons are active low
 ANDS R4, R4, #0x0F @ just considers values of inputs for SW0-3
-CMP  R4, #0x0F     @ if all high = none pressed
-BEQ  default_mode @ if they are all high then branch to default mode
+
+@ First want to check if button 2 or 3 pressed bcos
+
+TST  R4, #0b0100  @Button 2, the TST is an AND that wont change the R4 value, just changes flag
+BEQ  mode2 @ If result of above is 0, the Z flag =1 and it will go to mode2
+
+TST R4, #0b1000 @ checks if button 3 pressed
+BEQ  mode3 @same as above
+
+TST  R4, #0b0011 @ both button 0 and 1
+BEQ  mode01
+
+TST  R4, #0b0001 @button 0 pressed
+BEQ  mode0
+
+TST  R4, #0b0010 @button 1 pressed
+BEQ  mode1
+
+B    mode_Default
+
+mode01:
+
+@ keep this at end of this fucntion:
+B    main_loop
+
+mode0:
+
+@ keep this at end of this fucntion:
+B    main_loop
+mode1:
+
+@ keep this at end of this fucntion:
+B    main_loop
+
+mode2:
+
+@ keep this at end of this function:
+B    main_loop
+
+mode3:
+@ keep this at end of this function:
+B    main_loop
 
 default_mode:
-STR  R2, [R1, #0x14] @ display current count on LEDs
-ADD  R2, R2, #1        @ increments LED counter
+STR  R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
+ADD  R2, R2, #1 @ increments LED counter
 BL   longdelay @ branch to 0.7s delay
 B    main_loop @ takes back to main loop
+
 
 @ 0.7 seconds delay function
 longdelay:
