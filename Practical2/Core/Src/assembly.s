@@ -93,13 +93,19 @@ BL shortdelay
 B main_loop
 
 mode2:
+MOVS R2, #0xAA     @ Load pattern into R2
+STR R2, [R1, #0x14] @ Output to GPIO (LED pattern = 0xAA)
 
 @ keep this at end of this function:
 B main_loop @returns to main loop
 
 mode3:
 @ keep this at end of this function:
-B main_loop @returns to main loop
+LDR R4, [R5, #0x10] @ Read GPIO input register
+MOVS R6, #0x08 @ Mask for SW3 (bit 3)
+TST R4, R6 @ Check if SW3 is pressed
+BEQ mode3 @ If still pressed, loop here
+B main_loop
 
 default_mode:
 STR R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
