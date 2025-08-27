@@ -93,10 +93,9 @@ BL shortdelay
 B main_loop
 
 mode2:
-MOVS R7, R2 @ keep original count value
+
 MOVS R2, #0xAA     @ Load pattern into R2
 STR R2, [R1, #0x14] @ Output to GPIO (LED pattern = 0xAA)
-MOVS R2, R7
 
 @ keep this at end of this function:
 B main_loop @returns to main loop
@@ -149,9 +148,9 @@ MODER_OUTPUT: 		.word 0x5555
 
 @ Choosing long delay: 8 Mhz clock (8 million cycles per sec) and want a 0.7s delay.
 @ 8 Mhz * 0.7 = 5600000 cycles
-@ Did some research and apparently an ARM loop takes about 3 cycles to execute
-@ Therefore delay value: 5600000 divided by 3 = 1866666
+@ Did some research and apparently an ARM loop takes about 3.95 cycles to execute
+@ Therefore delay value: 5600000 divided by 3.95 = 1417721 (initially tried 3 but was slow)
 @ will have to double check this is correct when testing
-@ in testing found that it is slightly too slow so trying to speed up the 0.7s
-LONG_DELAY_CNT: 	.word 1513513 @assuming takes 3.85 cycles
-SHORT_DELAY_CNT: 	.word 623376 @uses same logic as long delay but for 0.3s (adjust for 3.85 cycles)
+
+LONG_DELAY_CNT: 	.word 1417721
+SHORT_DELAY_CNT: 	.word 623376 @uses same logic as long delay but for 0.3s
