@@ -93,13 +93,21 @@ BL shortdelay
 B main_loop
 
 mode2:
+MOVS R7, R2 @ keep original count value
+MOVS R2, #0xAA     @ Load pattern into R2
+STR R2, [R1, #0x14] @ Output to GPIO (LED pattern = 0xAA)
+MOVS R2, R7
 
 @ keep this at end of this function:
 B main_loop @returns to main loop
 
 mode3:
 @ keep this at end of this function:
-B main_loop @returns to main loop
+LDR R4, [R5, #0x10] @ Read GPIO input register
+MOVS R6, #0x08 @ Mask for SW3 (bit 3)
+TST R4, R6 @ Check if SW3 is pressed
+BEQ mode3 @ If still pressed, loop here
+B main_loop
 
 default_mode:
 STR R2, [R1, #0x14] @ display current count on LEDs (R2) sends to address for LED ODR
@@ -144,5 +152,6 @@ MODER_OUTPUT: 		.word 0x5555
 @ Did some research and apparently an ARM loop takes about 3 cycles to execute
 @ Therefore delay value: 5600000 divided by 3 = 1866666
 @ will have to double check this is correct when testing
-LONG_DELAY_CNT: 	.word 1866666
-SHORT_DELAY_CNT: 	.word 800000 @uses same logic as long delay but for 0.3s
+@ in testing found that it is slightly too slow so trying to speed up the 0.7s
+LONG_DELAY_CNT: 	.word 1513513 @assuming takes 3.85 cycles
+SHORT_DELAY_CNT: 	.word 623376 @uses same logic as long delay but for 0.3s (adjust for 3.85 cycles)
